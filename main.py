@@ -2,6 +2,9 @@ import requests
 import base64
 import time
 import datetime
+from urllib.parse import urlparse
+
+
 def search(access_token):
 
 	header = {'Authorization': 'Bearer {}'.format(access_token)}
@@ -21,12 +24,63 @@ def search(access_token):
 			times.append(status['created_at'])
 
 		print(users)
-		print(times)
+		user_stats = get_number_of_tweets_byuser(users)
+		links_stats = get_links_stats(statuses)
+		#print all the user tweeted the name and the number of tweets by that person
+		for user in user_stats:
+			limiter = '#'*100
+			print(limiter)
+			print("User : Tweets on Tron")
+			print("{} : {}".format(user,user_stats[user]))
+
 	pass
+def get_links_stats(data):
+	'''
+	need to find total number of links used in tweets
+	get unique domains and total number of times the domain used
+	:param data: json data of statuses
+	:return:
+	'''
+	urls_in_tweets = []	#text:  urls
+	domain_list = []
+	domain_dict = {}
+	for status in data:
+		print("#"*100)
+		print(status["text"])
+		print(status["entities"])
+
+		urls_list = status["entities"]["urls"]
+		for url_element in urls_list:
+			url_append = url_element["expanded_url"]
+			if not('twitter' in url_append and 'status' in url_append):
+				urls_in_tweets.append(url_append)
+				urlobj = urlparse(url_append)
+				domain_list.append(urlobj.netloc)
+		# if not( 'tweet' in urls_in_tweets and 'status' in urls_in_tweets):
+		# 	urls_in_tweets.append(status["entities"]["urls"]["expanded_url"])  # appends expanded URLS
+	print(urls_in_tweets)
+	print("Total number of links :: {}".format(len(urls_in_tweets)))
+	for domain in domain_list:
+		if domain not in domain_dict:
+			domain_dict[domain] = 1
+		else:
+			domain_dict[domain] = domain_dict[domain]+1
+
+	return
 
 
-
-
+def get_number_of_tweets_byuser(users):
+	'''
+	:param user: list of users twitted the keyword
+	:return:
+	'''
+	user_dict = {}
+	for user in users:
+		if user not in user_dict:
+			user_dict[user] = 1
+		else:
+			user_dict[user] = user_dict[user]+1
+	return user_dict
 
 def Oauth(consumer_key,consumer_secret):
 	'''
