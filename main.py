@@ -56,8 +56,7 @@ def get_links_stats(data):
 				urls_in_tweets.append(url_append)
 				urlobj = urlparse(url_append)
 				domain_list.append(urlobj.netloc)
-		# if not( 'tweet' in urls_in_tweets and 'status' in urls_in_tweets):
-		# 	urls_in_tweets.append(status["entities"]["urls"]["expanded_url"])  # appends expanded URLS
+
 	print(urls_in_tweets)
 	print("Total number of links :: {}".format(len(urls_in_tweets)))
 	for domain in domain_list:
@@ -65,7 +64,9 @@ def get_links_stats(data):
 			domain_dict[domain] = 1
 		else:
 			domain_dict[domain] = domain_dict[domain]+1
-
+	ascending_order_domains_usage = sorted(domain_dict.items(), key=lambda elem: -elem[1])
+	for domain in ascending_order_domains_usage:
+		print(domain)
 	return
 
 
