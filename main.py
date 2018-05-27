@@ -5,14 +5,20 @@ import datetime
 from urllib.parse import urlparse
 import threading
 
+
+urls_in_tweets = []
 def search(access_token,search_word='python'):
 
 	header = {'Authorization': 'Bearer {}'.format(access_token)}
 
 	if not None:
-		print('Getting data....')
+		print('Getting data....\n')
 		search_url = 'https://api.twitter.com/1.1/search/tweets.json?q={}&result_type=recent&count=100'.format(search_keyword)	#need to add until, to limit search till previous day
-		search_resp = requests.get(search_url, headers=header)
+		try:
+			search_resp = requests.get(search_url, headers=header)
+		except requests.exceptions.ConnectionError as e:
+			print("Connection Error, Check connection")
+			sys.exit()
 		search_data = search_resp.json()
 		statuses = get_data_from_last_mins(search_data['statuses'],5)	#returns the list of tweets from last 5 mins
 		if len(statuses)==0:
@@ -23,9 +29,9 @@ def search(access_token,search_word='python'):
 		for status in statuses:
 			users.append(status['user']['name'])	#get all the users who tweeted
 		get_number_of_tweets_byuser(users)
-		print('Processing data....')
+		print('Processing data....\n')
 		get_links_stats(statuses)
-		pass
+		print('\n\n'+'='*100)
 
 def get_data_from_last_mins(data, mins):
 	'''
@@ -79,23 +85,29 @@ def get_links_stats(data):
 	:param data: json data of statuses
 	:return:
 	'''
-	urls_in_tweets = []	#text:  urls
+	thread_objs = []
+	# urls_in_tweets = []	#text:  urls
 	domain_list = []
 	domain_dict = {}
 	print('#' * 50 + 'Links Stats' + '#' * 50)
+	print('\n')
 	for status in data:
 		urls_list = status["entities"]["urls"]
 		for url_element in urls_list:
-			url_append = unshorten_url(url_element["expanded_url"])
-			if not('twitter' in url_append and 'status' in url_append):
-				#ignoring twitter links which redirects to status
-				urls_in_tweets.append(url_append)
-				urlobj = urlparse(url_append)
-				domain_list.append(urlobj.netloc)
+			url_append = url_element["expanded_url"]
+			if not('twitter' in url_append and 'status' in url_append):  #twitter statuses to ignored
+				tobj = threading.Thread(target=unshorten_url, args=(url_append,))
+				thread_objs.append(tobj)
+				tobj.start()
+	for obj in thread_objs:
+		obj.join()
 
-	print("Total number of links :: {}".format(len(urls_in_tweets)))
+
+	print("Total number of links in tweets :: {}\n".format(len(urls_in_tweets)))
 	for link in urls_in_tweets:
 		print('%s'%link)
+		urlobj = urlparse(link)
+		domain_list.append(urlobj.netloc)
 
 
 	for domain in domain_list:
@@ -104,13 +116,19 @@ def get_links_stats(data):
 		else:
 			domain_dict[domain] = domain_dict[domain]+1
 	ascending_order_domains_usage = sorted(domain_dict.items(), key=lambda elem: -elem[1])
-	print('Unique domains and number of times the domain used::::::')
+	print('-'*100)
+	print('\n')
+	print('Unique domains and number of times the domain used::::::\n')
 	for domain in ascending_order_domains_usage:
 		print('{}  :  {}'.format(domain[0],domain[1]))
 	return
 
 def unshorten_url(url):
-    return requests.head(url, allow_redirects=True).url
+	try:
+		urls_in_tweets.append(requests.head(url, allow_redirects=True).url)
+	except requests.exceptions.ConnectionError as e:
+		print("Connection Error, Check connection")
+		sys.exit()
 
 def get_number_of_tweets_byuser(users):
 	'''
@@ -125,6 +143,7 @@ def get_number_of_tweets_byuser(users):
 			user_dict[user] = user_dict[user]+1
 	userdict_sorted = sorted(user_dict.items(), key=lambda elem: -elem[1])
 	print('#'*50+'User Stats'+'#'*50)
+	print('user  :   Number of times the user has tweeted the word\n')
 	for user in userdict_sorted:
 		print('%s   :   %s'%(user[0],user[1]))
 
