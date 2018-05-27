@@ -51,7 +51,7 @@ def get_links_stats(data):
 
 		urls_list = status["entities"]["urls"]
 		for url_element in urls_list:
-			url_append = url_element["expanded_url"]
+			url_append = unshorten_url(url_element["expanded_url"])
 			if not('twitter' in url_append and 'status' in url_append):
 				urls_in_tweets.append(url_append)
 				urlobj = urlparse(url_append)
@@ -69,6 +69,8 @@ def get_links_stats(data):
 		print(domain)
 	return
 
+def unshorten_url(url):
+    return requests.head(url, allow_redirects=True).url
 
 def get_number_of_tweets_byuser(users):
 	'''
