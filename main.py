@@ -3,6 +3,8 @@ from tweepy import OAuthHandler
 from tweepy.streaming import StreamListener
 import sqlite3
 import json
+import threading
+
 
 consumer_key = 'NiBKgW5YIu2TKm3kJE4RZKRXz'
 consumer_secret = '8ZPCDCTREa6DF4tm7NpInP1iDq9a7bkPIBQRVyH2Q1cBlLqPHo'
@@ -12,6 +14,7 @@ Access_Token_Secret  = "RjWCAsWJwfP3HuaPgIWFAlEHtJfDMqbMbnDk3zfBgBtUH"
 class listener(StreamListener):
 
 	def __init__(self):
+		threading.Timer(15, self.generate_report).start()
 		self.conn = sqlite3.connect('twitter.db')    #initialize db
 		self.dbobj = self.conn.cursor()
 		try:
@@ -32,14 +35,27 @@ class listener(StreamListener):
 			if not('twitter' in url_append and 'status' in url_append):  #twitter statuses to ignored
 				final_url += url_append
 		self.dbobj.execute("insert into tweets values(?,?,?)",(user,tweet_time,final_url))
-		for i in self.dbobj.execute("select * from tweets"):
-			print(i)
+
 		# print(user)
 		self.conn.commit()
 		return(True)
 
 	def on_error(self, status):
 		print(status)
+
+	def generate_report(self):
+		'''
+		process data from db at the interval of 1 minute
+		:return:
+		'''
+		threading.Timer(15,self.generate_report).start()	#self calling logic, call after 1 min
+		self.process = sqlite3.connect('twitter.db')    #initialize db
+		self.processdbobj = self.process.cursor()
+		print("#"*100)
+		for i in self.processdbobj.execute("select * from tweets"):
+			print(i)
+
+
 
 auth = OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(Access_Token, Access_Token_Secret)
