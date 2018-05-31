@@ -18,7 +18,7 @@ class listener(StreamListener):
 
 	def __init__(self):
 		self.conn = sqlite3.connect('twitter.db')    #initialize db
-		threading.Timer(300, self.generate_report).start()	#first thread will be triggered after 5 minutes
+		threading.Timer(60, self.generate_report).start()	#first thread will be triggered after 5 minutes
 
 		self.dbobj = self.conn.cursor()
 
@@ -49,7 +49,7 @@ class listener(StreamListener):
 					  'Nov': 11,
 					  'Dec': 12
 					  }
-
+		print('data will be presented in 1 min')
 
 	def on_data(self, data):
 		'''fetch streaming data'''
@@ -90,6 +90,7 @@ class listener(StreamListener):
 		self.short_urls = []
 		# self.processurl = sqlite3.connect('urls.db')
 		# self.processurldbobj = self.processurl.cursor()
+		print('\n\n')
 		print("#"*100)
 
 		currtime = datetime.utcnow().timestamp()
@@ -104,7 +105,7 @@ class listener(StreamListener):
 		#Get total numbers of urls
 		print("\n\nURL stats")
 		url_count =  self.processdbobj.execute("select count(url) from urls where time>?",(threshold_time,))
-		print("Total number of URLS mentioned ::  {}".format(url_count.fetchone()[0]))
+		print("Total number of URLS mentioned for last 5 mins ::  {}".format(url_count.fetchone()[0]))
 
 		#Extract domain Info
 		for url_data in self.processdbobj.execute("select url from urls where time>?",(threshold_time,)):	#accumulating urls
@@ -131,7 +132,7 @@ class listener(StreamListener):
 		ascending_order_domains_usage = sorted(domain_dict.items(), key=lambda elem: -elem[1])
 		print('-' * 100)
 		print('\n')
-		print('Unique domains and number of times the domain used::::::\n')
+		print('Unique domains and number of times the domain used for last 5 mins::::::\n')
 		for domain in ascending_order_domains_usage:
 
 			print('{}  :  {}'.format(domain[0], domain[1]))
