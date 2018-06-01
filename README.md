@@ -7,9 +7,11 @@ Report generated is as follows:
 
 requirement:
 python 3.x.x
+tweepy library
 
 
 Setup:
+install tweepy library : pip install tweepy
 execute the code with 'python main.py'
 code will prompt to enter a keyword for which the report is be generated
 the programm should start generating report 
