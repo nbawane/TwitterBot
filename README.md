@@ -1,5 +1,5 @@
 # TwitterBot
-This twitter bot uses twitter search API to search a particular keyword used in tweets and generates report. The report is generated after every 1 miniute for last 5 mins of data.
+This twitter bot uses twitter stream API to search a particular keyword used in tweets and generates report. The report is generated after every 1 miniute for last 5 mins of data.
 
 Report generated is as follows:
 1) All the users who used the word in their tweet along with the number of times the user twitted the word.
@@ -7,6 +7,7 @@ Report generated is as follows:
 
 requirement:
 python 3.x.x
+SQliteDB
 
 
 Setup:
